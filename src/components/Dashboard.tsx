@@ -30,8 +30,8 @@ interface DashboardProps {
 
 const HOME_PHRASES = [
   "Turn your dreams to reality, {name}",
-  "Dream Big, {name}",
-  "Nice to see you, {name}"
+  "Dream big, {name}",
+  "Nice to see you, night owl"
 ];
 
 type Step = "home" | "recording" | "archive" | "settings";
@@ -45,6 +45,7 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
     { icon: HomeIcon, label: "Home", action: () => setCurrentStep("home") },
     { icon: PlusIcon, label: "Add", action: () => setCurrentStep("recording") },
     { icon: CounterClockwiseClockIcon, label: "Archive", action: () => setCurrentStep("archive") },
+    { icon: MagicWandIcon, label: "Personalization", action: () => setCurrentStep("settings") },
   ]
   const [backgroundImage, setBackgroundImage] = useState("/dreambackground1.png");
 
@@ -107,7 +108,16 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
         onFocus={() => setSidebarFocused(true)}
         onBlur={() => setSidebarFocused(false)}
       >
-        <div className="flex flex-col items-center justify-center flex-1 gap-2 md:gap-3">
+        {/* Favicon at the top of the sidebar, monochrome */}
+        <div className="mb-4">
+          <img
+            src="/favicon.ico"
+            alt="App Logo"
+            className="w-8 h-8 md:w-10 md:h-10 object-contain filter invert"
+            draggable="false"
+          />
+        </div>
+        <div className="flex flex-col items-center justify-center flex-1 gap-4 md:gap-5">
           {sidebarItems.map((item, index) => (
             <button
               key={index}
@@ -121,24 +131,34 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
             </button>
           ))}
         </div>
-        {/* User icon at the bottom */}
-        <div className="mt-auto mb-2">
-          <button
-            className="p-1.5 md:p-2 rounded-full transition-all duration-200 hover:bg-gray-700/50 focus:bg-gray-700/50 focus:outline-none"
-            title="Profile"
-            onClick={() => setCurrentStep("settings")}
-          >
-            <PersonIcon className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-300" />
-          </button>
-        </div>
+        {/* No bottom icon, all icons are grouped above */}
       </aside>
 
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex flex-col">
         {/* Header */}
         <header className="relative z-10 flex items-center justify-between p-3 md:p-4 min-h-[56px]">
-          <div className="flex items-center gap-3">
-            <div className="text-xl font-bold">{appLogo}</div>
+          <div className="flex items-center gap-1">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="text-xl font-bold flex items-center justify-center min-w-[1.5em] min-h-[1.5em]"
+              >
+                {currentStep === "settings" ? (
+                  <MagicWandIcon className="w-4 h-4 text-white" />
+                ) : currentStep === "recording" ? (
+                  <MoonIcon className="w-4 h-4 text-white" />
+                ) : currentStep === "archive" ? (
+                  <CounterClockwiseClockIcon className="w-4 h-4 text-white" />
+                ) : (
+                  <span>{appLogo}</span>
+                )}
+              </motion.div>
+            </AnimatePresence>
             <AnimatePresence mode="wait">
               <motion.h1
                 key={headerPhrase}
@@ -173,11 +193,16 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
     ) : (
       // Dreamscape Intro
       <div className="flex flex-col items-center justify-center h-full">
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 md:p-8 shadow-lg flex flex-col items-center transition-all duration-300">
-          <p className="text-white text-lg md:text-xl font-semibold mb-4 text-center">
-            DREAMSCAPE
-          </p>
-          <p className="text-center text-base md:text-lg font-light text-white p-6">
+        <div
+          className="bg-white/20 backdrop-blur-md border border-white/20 rounded-xl shadow-lg flex flex-col items-center justify-center transition-all duration-300 aspect-[9/11] w-full max-w-xs  md:max-w-sm px-8"
+        >
+          <img
+            src="/favicon.ico"
+            alt="Dreamscape Logo"
+            className="mb-6 w-16 h-16 md:w-20 md:h-20 object-contain"
+          />
+          <h1 className="text-lg font-semibold">Dreamscape</h1>
+          <p className="text-center text-base md:text-lg font-light text-white py-1">
             Your subconscious comes to life. Record your dreams with just your voice, and
             watch as your words transform into vivid, surreal visualizations, turning your
             dreams into something you can see, feel, and explore.

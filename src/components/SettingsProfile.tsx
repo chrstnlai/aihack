@@ -75,13 +75,13 @@ export default function SettingsProfile() {
         {/* Self Description */}
         <div className="space-y-2">
           <label htmlFor="self-description" className="block font-medium text-white">Self-description</label>
-          <textarea
-            id="self-description"
-            placeholder="I'm 20 years old, Asian, I have black relatively mid-long hair, 6 foot tall, I wear usually dark clothes ...."
+          <input
+            type="text"
             value={formData.selfDescription}
             onChange={e => handleFieldChange("selfDescription", e.target.value)}
             onBlur={e => handleBlur("selfDescription", e.target.value)}
-            className="min-h-[120px] resize-none w-full rounded bg-gray-900 text-white p-2 border border-gray-700"
+            className="w-full border border-gray-300 rounded px-3 py-2 mb-2 text-black bg-white"
+            placeholder="Describe yourself..."
           />
         </div>
 
@@ -94,7 +94,7 @@ export default function SettingsProfile() {
             value={formData.triggersAndBoundaries}
             onChange={e => handleFieldChange("triggersAndBoundaries", e.target.value)}
             onBlur={e => handleBlur("triggersAndBoundaries", e.target.value)}
-            className="min-h-[120px] resize-none w-full rounded bg-gray-900 text-white p-2 border border-gray-700"
+            className="w-full border border-gray-300 rounded px-3 py-2 mb-2 text-black bg-white"
           />
         </div>
 
@@ -127,9 +127,9 @@ export default function SettingsProfile() {
           >
             Clear all
           </button>
-          {saveStatus === "saving" && <span>Saving...</span>}
-          {saveStatus === "saved" && <span className="text-green-600">Saved</span>}
-          {lastSaved && saveStatus === "idle" && <span>Last saved: {lastSaved.toLocaleTimeString()}</span>}
+          {saveStatus === "saving" && <span className="font-berstein">Saving...</span>}
+          {saveStatus === "saved" && <span className="text-green-600 font-berstein">Saved</span>}
+          {lastSaved && saveStatus === "idle" && <span className="font-berstein">Last saved: {lastSaved.toLocaleTimeString()}</span>}
         </div>
       </div>
 

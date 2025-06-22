@@ -44,6 +44,7 @@ export const useDreamStore = create<DreamStore>((set, get) => ({
 
   addDream: async (dream) => {
     set({ loading: true, error: null });
+    console.log('[Supabase] Inserting dream:', dream);
     const { data, error } = await supabase
       .from('dreams')
       .insert([{ ...dream }])
