@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import DreamDetails from "./DreamDetails"
+import { TrashIcon, Pencil2Icon } from "@radix-ui/react-icons"
 
 interface Dream {
   id: string
@@ -126,7 +127,7 @@ export default function DreamArchive({ onBack }: DreamArchiveProps) {
             {currentDreams.map((dream) => (
               <div
                 key={dream.id}
-                className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg overflow-hidden cursor-pointer hover:bg-white/20 transition-all duration-200"
+                className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg overflow-hidden cursor-pointer hover:bg-white/20 transition-all duration-200 relative group"
                 onClick={() => setSelectedDream(dream)}
               >
                 {/* Thumbnail */}
@@ -143,11 +144,28 @@ export default function DreamArchive({ onBack }: DreamArchiveProps) {
 
                 {/* Content */}
                 <div className="p-4">
-                  {/* Date */}
-                  <h3 className="text-white text-base font-medium mb-2">
-                    {formatDate(dream.created_at)}
-                  </h3>
-
+                  {/* Date and Delete */}
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-white text-base font-medium">
+                      {formatDate(dream.created_at)}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <button
+                        className="text-white hover:text-yellow-400 transition-colors"
+                        title="Edit Title"
+                        onClick={e => { e.stopPropagation(); startTitleEdit(dream); }}
+                      >
+                        <Pencil2Icon className="w-5 h-5" />
+                      </button>
+                      <button
+                        className="text-white hover:text-red-500 transition-colors"
+                        title="Delete Dream"
+                        onClick={e => { e.stopPropagation(); handleDeleteDream(dream.id); }}
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
                   {/* User Title */}
                   <div className="mb-3">
                     {isEditingTitle === dream.id ? (
@@ -186,15 +204,6 @@ export default function DreamArchive({ onBack }: DreamArchiveProps) {
                         <p className="text-gray-300 text-sm opacity-100">
                           {dream.user_title || "No title provided"}
                         </p>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            startTitleEdit(dream)
-                          }}
-                          className="text-blue-400 hover:text-blue-300 text-sm"
-                        >
-                          Edit
-                        </button>
                       </div>
                     )}
                   </div>

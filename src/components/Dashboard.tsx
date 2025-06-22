@@ -154,6 +154,13 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
               </motion.h1>
             </AnimatePresence>
           </div>
+          <span
+            className="text-base md:text-lg font-light opacity-60 hover:opacity-80 cursor-copy transition-opacity select-none"
+            title="Copy share link"
+            onClick={() => navigator.clipboard.writeText(process.env.NEXT_PUBLIC_URL || window.location.origin)}
+          >
+            Share↗
+          </span>
         </header>
 
         {/* Main Content Area */}
