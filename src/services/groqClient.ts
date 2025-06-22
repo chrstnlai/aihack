@@ -99,23 +99,11 @@ export class GroqClient {
         messages: [
           {
             role: "system",
-            content: `You are a dream analysis system that converts raw dream transcripts into detailed, structured JSON data. 
-
-Your task is to analyze the transcript and create a comprehensive JSON structure that captures:
-1. Sequential order of events
-2. All elements mentioned (people, places, objects, emotions)
-3. Actions and interactions
-4. Environmental details
-5. Emotional states and themes
-6. Temporal relationships
-7. Spatial relationships
-8. Symbolic elements
-
-Return ONLY valid JSON. Do not include any explanatory text, markdown formatting, or code blocks. The JSON should be immediately parseable.`
+            content: `You are a dream analysis system that converts raw dream transcripts into detailed, structured JSON data.\n\nYour task is to analyze the transcript and create a comprehensive JSON structure that captures:\n1. A top-level 'title' field: a short, creative, AI-generated title for the dream.\n2. A top-level 'description' field: a vivid, AI-generated summary of the dream in 1-2 sentences.\n3. A 'details' field: a detailed structure that includes sequential order of events, all elements mentioned (people, places, objects, emotions), actions and interactions, environmental details, emotional states and themes, temporal relationships, spatial relationships, and symbolic elements.\n\nReturn ONLY valid JSON. Do not include any explanatory text, markdown formatting, or code blocks. The JSON should be immediately parseable.`
           },
           {
             role: "user",
-            content: `Turn this raw transcript into a JSON. It should note the sequential order of events, all of the elements, etc.. to make it extremely detailed: "${transcript}"`
+            content: `Turn this raw transcript into a JSON. It should include a top-level title, a top-level description, and a detailed structure: "${transcript}"`
           }
         ],
         model: "llama-3.1-8b-instant",

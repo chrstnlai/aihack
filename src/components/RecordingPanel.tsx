@@ -126,36 +126,74 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
     }
   }, []);
 
+  // Helper to extract first frame as base64 image
+  const extractVideoThumbnail = (videoUrl: string): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.crossOrigin = 'anonymous';
+      video.src = videoUrl;
+      video.muted = true;
+      video.playsInline = true;
+      video.currentTime = 0;
+      video.addEventListener('loadeddata', () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/png');
+            resolve(dataUrl);
+          } else {
+            resolve(null);
+          }
+        } catch (err) {
+          resolve(null);
+        }
+      });
+      video.addEventListener('error', () => resolve(null));
+    });
+  };
+
   // Function to save dream to localStorage
   const saveDreamToLocalStorage = useCallback(async (structuredData: any, videoUrl: string) => {
+    // Always get the latest emojis from state at save time
+    const latestEmojis = [...emojis];
+    let video_thumbnail: string | null = null;
     try {
-      const dream = {
-        id: crypto.randomUUID(),
-        user_title: null, // User can edit this later
-        ai_title: structuredData.title || "Untitled Dream",
-        ai_description: structuredData.description || "A dream experience captured through voice and transformed into visual art.",
-        transcript_raw: transcription || "",
-        transcript_json: structuredData,
-        video_url: videoUrl,
-        video_thumbnail: null, // We'll generate this client-side later
-        created_at: new Date().toISOString(),
-        emojis: emojis
-      };
-
-      // Get existing dreams from localStorage
-      const existingDreams = localStorage.getItem('dreams');
-      const dreams = existingDreams ? JSON.parse(existingDreams) : [];
-      
-      // Add new dream to the beginning
-      dreams.unshift(dream);
-      
-      // Save back to localStorage
-      localStorage.setItem('dreams', JSON.stringify(dreams));
-      
-      console.log("✅ Dream saved to localStorage:", dream.id);
-    } catch (error) {
-      console.error("❌ Error saving dream to localStorage:", error);
+      video_thumbnail = await extractVideoThumbnail(videoUrl);
+    } catch (err) {
+      video_thumbnail = null;
     }
+    if (!video_thumbnail) {
+      video_thumbnail = "/dreambackground1.png";
+    }
+    console.log('Saving dream with emojis:', latestEmojis);
+    const dream = {
+      id: crypto.randomUUID(),
+      user_title: null, // User can edit this later
+      ai_title: structuredData.title || "Untitled Dream",
+      ai_description: structuredData.description || "A dream experience captured through voice and transformed into visual art.",
+      transcript_raw: transcription || "",
+      transcript_json: structuredData,
+      video_url: videoUrl,
+      video_thumbnail,
+      created_at: new Date().toISOString(),
+      emojis: latestEmojis
+    };
+
+    // Get existing dreams from localStorage
+    const existingDreams = localStorage.getItem('dreams');
+    const dreams = existingDreams ? JSON.parse(existingDreams) : [];
+    
+    // Add new dream to the beginning
+    dreams.unshift(dream);
+    
+    // Save back to localStorage
+    localStorage.setItem('dreams', JSON.stringify(dreams));
+    
+    console.log("✅ Dream saved to localStorage:", dream.id);
   }, [transcription, emojis]);
 
   // Function to create a new MediaRecorder with WAV format
