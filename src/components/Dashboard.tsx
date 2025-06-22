@@ -29,8 +29,8 @@ interface DashboardProps {
 }
 
 const HOME_PHRASES = [
-  "How can I help make your day easier, {name}?",
-  "Here to support you with anything you need, {name}.",
+  "Turn your dreams to reality, {name}",
+  "Dream Big, {name}",
   "Nice to see you, {name}"
 ];
 
@@ -42,8 +42,8 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
   const [headerPhrase, setHeaderPhrase] = useState("");
   
   const sidebarItems = [
-    { icon: PlusIcon, label: "Add", action: () => setCurrentStep("recording") },
     { icon: HomeIcon, label: "Home", action: () => setCurrentStep("home") },
+    { icon: PlusIcon, label: "Add", action: () => setCurrentStep("recording") },
     { icon: CounterClockwiseClockIcon, label: "Archive", action: () => setCurrentStep("archive") },
   ]
   const [backgroundImage, setBackgroundImage] = useState("/dreambackground1.png");
@@ -107,7 +107,7 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
         onFocus={() => setSidebarFocused(true)}
         onBlur={() => setSidebarFocused(false)}
       >
-        <div className="flex flex-col gap-2 md:gap-3 flex-1">
+        <div className="flex flex-col items-center justify-center flex-1 gap-2 md:gap-3">
           {sidebarItems.map((item, index) => (
             <button
               key={index}
@@ -162,55 +162,51 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
         </header>
 
         {/* Main Content Area */}
-        <main className="relative z-10 flex-1 flex justify-center pt-8 md:pt-12 pb-4 px-3 md:px-6">
-          <div className="w-full max-w-xl">
-            {currentStep === "archive" ? (
-              <DreamArchive onBack={() => setCurrentStep("home")} />
-            ) : currentStep === "settings" ? (
-              <SettingsProfile />
-            ) : currentStep === "recording" ? (
-              <RecordingPanel onBack={() => setCurrentStep("home")} />
-            ) : (
-              // Dreamscape Intro
-              <>
-                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 md:p-8 shadow-lg flex flex-col items-center transition-all duration-300">
-                  <p className="text-white text-lg md:text-xl font-semibold mb-4 text-center">
-                    DREAMSCAPE
-                  </p>
-                  <p className="text-center text-base md:text-lg font-light text-white p-6">
-                    Your subconscious comes to life. Record your dreams with just your voice, and
-                    watch as your words transform into vivid, surreal visualizations—turning your
-                    dreams into something you can see, feel, and explore.
-                  </p>
-                </div>
-                {/* Action Bar */}
-                <div className="flex flex-wrap justify-center gap-4 mt-8">
-                  <button
-                    className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 border border-white/20 text-white text-base font-medium shadow-sm hover:bg-white/20 transition-all backdrop-blur-md"
-                    onClick={() => setCurrentStep("recording")}
-                  >
-                    <MoonIcon className="w-5 h-5" />
-                    Re-enact your dream
-                  </button>
-                  <button
-                    className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 border border-white/20 text-white text-base font-medium shadow-sm hover:bg-white/20 transition-all backdrop-blur-md"
-                    disabled
-                  >
-                    <MagicWandIcon className="w-5 h-5" />
-                    Add images and relationships
-                  </button>
-                  <button
-                    className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 border border-white/20 text-white text-base font-medium shadow-sm hover:bg-white/20 transition-all backdrop-blur-md"
-                    onClick={() => setCurrentStep("archive")}
-                  >
-                    <CrumpledPaperIcon className="w-5 h-5" />
-                    See previous dreams
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </main>
+        <main className="relative z-10 flex-1 flex items-center justify-center px-3 md:px-6">
+  <div className="w-full max-w-xl">
+    {currentStep === "archive" ? (
+      <DreamArchive onBack={() => setCurrentStep("home")} />
+    ) : currentStep === "settings" ? (
+      <SettingsProfile />
+    ) : currentStep === "recording" ? (
+      <RecordingPanel onBack={() => setCurrentStep("home")} />
+    ) : (
+      // Dreamscape Intro
+      <div className="flex flex-col items-center justify-center h-full">
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 md:p-8 shadow-lg flex flex-col items-center transition-all duration-300">
+          <p className="text-white text-lg md:text-xl font-semibold mb-4 text-center">
+            DREAMSCAPE
+          </p>
+          <p className="text-center text-base md:text-lg font-light text-white p-6">
+            Your subconscious comes to life. Record your dreams with just your voice, and
+            watch as your words transform into vivid, surreal visualizations, turning your
+            dreams into something you can see, feel, and explore.
+          </p>
+        </div>
+
+        {/* Action Bar */}
+        <div className="flex flex-wrap justify-center gap-4 mt-8">
+          <button
+            className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 border border-white/20 text-white text-base font-medium shadow-sm hover:bg-white/20 transition-all backdrop-blur-md"
+            onClick={() => setCurrentStep("recording")}
+          >
+            <MoonIcon className="w-5 h-5" />
+            Re-enact your dream
+          </button>
+
+          <button
+            className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 border border-white/20 text-white text-base font-medium shadow-sm hover:bg-white/20 transition-all backdrop-blur-md"
+            onClick={() => setCurrentStep("archive")}
+          >
+            <CrumpledPaperIcon className="w-5 h-5" />
+            See previous dreams
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+</main>
+
       </div>
     </div>
   )

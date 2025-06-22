@@ -393,48 +393,53 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
   return (
     <div className="flex flex-col items-center">
       <div className="text-white mt-6 text-center">
+      <button
+  onClick={onBack}
+  className="absolute top-4 left-1/4 sm:top-40 sm:left-50 bg-white text-black px-3 py-1.5 rounded-full text-sm font-medium shadow-sm hover:bg-gray-100 transition z-50"
+>
+  &lt;
+</button>
+
+        <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-white/20 backdrop-blur-sm rounded-lg px-10 py-6 mx-auto mb-4" style={{ width: "100%", maxWidth: "800px" }}>
+    <p className="text-xl text-white text-center mb-4">
+      {isRecording 
+        ? `🎙️ Recording in progress... (chunks every ${CHUNK_DURATION_MS/1000}s)` 
+        : hasFinishedRecording 
+          ? isProcessing ? "🔄 Processing complete recording..." : "✅ Recording completed!" 
+          : "Tap to start recording"
+      }
+    </p>
+
+    <div className="flex gap-4 justify-center">
+      {!isRecording && !hasFinishedRecording ? (
         <button
-          onClick={onBack}
-          className="absolute top-4 left-1/4 sm:top-40 sm:left-50 bg-white text-black px-3 py-1.5 rounded-full text-sm font-medium shadow-sm hover:bg-gray-100 transition z-50"
+          onClick={startRecording}
+          className="bg-white text-black hover:bg-gray-100 px-4 py-2 rounded-full font-medium transition"
         >
-          ⬅
+          Start Recording
         </button>
-
-        <p className="text-xl mb-4">
-          {isRecording 
-            ? `🎙️ Recording in progress... (chunks every ${CHUNK_DURATION_MS/1000}s)` 
-            : hasFinishedRecording 
-              ? isProcessing ? "🔄 Processing complete recording..." : "✅ Recording completed!" 
-              : "Tap to start recording"
-          }
-        </p>
-
-        <div className="flex gap-4 justify-center mt-4">
-          {!isRecording && !hasFinishedRecording ? (
-            <button
-              onClick={startRecording}
-              className="bg-white text-black hover:bg-gray-100 px-4 py-2 rounded-full font-medium transition"
-            >
-              Start Recording
-            </button>
-          ) : isRecording ? (
-            <button
-              onClick={stopRecording}
-              className="bg-blue-500 text-white px-4 py-2 rounded-full"
-            >
-              Stop Recording
-            </button>
-          ) : (
-            <div className="flex gap-2">
-              <button
-                onClick={resetRecording}
-                className="bg-gray-600 text-white px-4 py-2 rounded-full font-medium transition"
-              >
-                Record Again
-              </button>
-            </div>
-          )}
+      ) : isRecording ? (
+        <button
+          onClick={stopRecording}
+          className="bg-blue-500 text-white px-4 py-2 rounded-full"
+        >
+          Stop Recording
+        </button>
+      ) : (
+        <div className="flex gap-2">
+          <button
+            onClick={resetRecording}
+            className="bg-gray-600 text-white px-4 py-2 rounded-full font-medium transition"
+          >
+            Record Again
+          </button>
         </div>
+      )}
+    </div>
+  </div>
+</div>
+
 
         {/* Show emojis during recording */}
         {isRecording && emojis.length > 0 && (
