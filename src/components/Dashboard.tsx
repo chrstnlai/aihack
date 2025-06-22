@@ -25,13 +25,14 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
     { icon: GridIcon, label: "Favorites" },
     { icon: PersonIcon, label: "Profile" },
   ]
-  const [backgroundImage, setBackgroundImage] = useState("/dreambackground1.png");
+  const [backgroundImage, setBackgroundImage] = useState("/backgrounds/dreambackground1.png");
 
   const backgrounds = [
-    "/dreambackground1.png",
-    "/dreambackground2.png",
-    "/dreambackground3.png",
-    "/dreambackground4.png",
+    "/backgrounds/dreambackground1.png",
+    "/backgrounds/dreambackground2.png",
+    "/backgrounds/dreambackground3.png",
+    "/backgrounds/dreambackground4.png",
+    "/backgrounds/video.mp4",
   ];
 
   // Pick a random one on first render
@@ -78,7 +79,7 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
               </p>
               <p className="text-center text-base md:text-lg font-light text-white p-6">
                 Your subconscious comes to life. Record your dreams with just your voice, and
-                watch as your words transform into vivid, surreal visualizations—turning your
+                watch as your words transform into vivid, surreal visualizations,turning your
                 dreams into something you can see, feel, and explore.
               </p>
               <button
