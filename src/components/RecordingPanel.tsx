@@ -110,6 +110,9 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
       if (data.success && data.videoUrls) {
         setVideoUrls(data.videoUrls);
         console.log("✅ Video generated successfully:", data.videoUrls.length, "videos");
+        
+        // Save dream to localStorage after successful video generation
+        await saveDreamToLocalStorage(jsonData, data.videoUrls[0]);
       } else {
         setVideoError(data.error || "Failed to generate video");
         console.error("❌ Video generation failed:", data.error);
@@ -122,6 +125,38 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
       setIsGeneratingVideo(false);
     }
   }, []);
+
+  // Function to save dream to localStorage
+  const saveDreamToLocalStorage = useCallback(async (structuredData: any, videoUrl: string) => {
+    try {
+      const dream = {
+        id: crypto.randomUUID(),
+        user_title: null, // User can edit this later
+        ai_title: structuredData.title || "Untitled Dream",
+        ai_description: structuredData.description || "A dream experience captured through voice and transformed into visual art.",
+        transcript_raw: transcription || "",
+        transcript_json: structuredData,
+        video_url: videoUrl,
+        video_thumbnail: null, // We'll generate this client-side later
+        created_at: new Date().toISOString(),
+        emojis: emojis
+      };
+
+      // Get existing dreams from localStorage
+      const existingDreams = localStorage.getItem('dreams');
+      const dreams = existingDreams ? JSON.parse(existingDreams) : [];
+      
+      // Add new dream to the beginning
+      dreams.unshift(dream);
+      
+      // Save back to localStorage
+      localStorage.setItem('dreams', JSON.stringify(dreams));
+      
+      console.log("✅ Dream saved to localStorage:", dream.id);
+    } catch (error) {
+      console.error("❌ Error saving dream to localStorage:", error);
+    }
+  }, [transcription, emojis]);
 
   // Function to create a new MediaRecorder with WAV format
   const createWavRecorder = useCallback((stream: MediaStream): MediaRecorder => {
