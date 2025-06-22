@@ -42,7 +42,13 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
       />
 
       {/* Main background layer */}
-      <div className="absolute inset-0 bg-black/80" />
+      <div
+  className="absolute inset-0 bg-cover bg-center opacity-60"
+  style={{
+    backgroundImage: "url('/dreambackground1.png')",
+    zIndex: 0,
+  }}
+/>
 
       {/* Content layer */}
       <div className="relative z-10 flex flex-col h-screen">
@@ -50,7 +56,7 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
         <header className="flex items-center justify-between p-3 md:p-4">
           <div className="flex items-center gap-3">
             <div className="text-xl font-bold">{appLogo}</div>
-            <h1 className="text-base md:text-lg font-light">Nice to see you, {userName}</h1>
+            <h1 className="text-base md:text-lg font-light">Nice to see , {userName}</h1>
           </div>
         </header>
 
@@ -58,8 +64,8 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
         <main className="flex-1 flex items-center justify-center p-3 md:p-6">
           <div className="w-full max-w-2xl">
             <div className="text-center mb-8">
-              <p className="text-gray-400 text-sm md:text-base mb-6">
-                Double-click anywhere to create a new Block, or start with...
+            <p className="text-white text-sm md:text-base mb-6">
+                Dreamscape
               </p>
             </div>
 
@@ -67,7 +73,7 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
             <div className="relative">
               <Input
                 placeholder="Start typing or double-click to create..."
-                className="w-full bg-gray-900/50 border-gray-700/50 text-white placeholder:text-gray-500 h-10 md:h-12 text-sm md:text-base px-3 md:px-4 rounded-lg focus:border-gray-600 focus:ring-1 focus:ring-gray-600 transition-all duration-200"
+                className="w-full bg-gray-900/50 border-gray-700/50 text-white placeholder:text-white h-10 md:h-12 text-sm md:text-base px-3 md:px-4 rounded-lg focus:border-gray-600 focus:ring-1 focus:ring-gray-600 transition-all duration-200"
               />
             </div>
           </div>
