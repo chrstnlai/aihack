@@ -177,7 +177,7 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
             title="Copy share link"
             onClick={() => navigator.clipboard.writeText(process.env.NEXT_PUBLIC_URL || window.location.origin)}
           >
-            Share↗
+            Share{"   "}↗
           </span>
         </header>
 
