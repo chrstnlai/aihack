@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import DreamDetails from "./DreamDetails"
 import { TrashIcon, Pencil2Icon } from "@radix-ui/react-icons"
+import { useDreamStore } from '../lib/dreamStore'
 
 interface Dream {
   id: string
@@ -22,7 +23,7 @@ interface DreamArchiveProps {
 }
 
 export default function DreamArchive({ onBack }: DreamArchiveProps) {
-  const [dreams, setDreams] = useState<Dream[]>([])
+  const { dreams, fetchDreams, updateDream, deleteDream, loading, error } = useDreamStore()
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedDream, setSelectedDream] = useState<Dream | null>(null)
   const [isEditingTitle, setIsEditingTitle] = useState<string | null>(null)
@@ -35,31 +36,8 @@ export default function DreamArchive({ onBack }: DreamArchiveProps) {
   const currentDreams = dreams.slice(startIndex, endIndex)
 
   useEffect(() => {
-    loadDreams()
-  }, [])
-
-  const loadDreams = () => {
-    try {
-      const savedDreams = localStorage.getItem('dreams')
-      if (savedDreams) {
-        const parsedDreams = JSON.parse(savedDreams)
-        setDreams(parsedDreams.sort((a: Dream, b: Dream) => 
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        ))
-      }
-    } catch (error) {
-      console.error('Error loading dreams:', error)
-    }
-  }
-
-  const saveDreams = (updatedDreams: Dream[]) => {
-    try {
-      localStorage.setItem('dreams', JSON.stringify(updatedDreams))
-      setDreams(updatedDreams)
-    } catch (error) {
-      console.error('Error saving dreams:', error)
-    }
-  }
+    fetchDreams()
+  }, [fetchDreams])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -69,20 +47,14 @@ export default function DreamArchive({ onBack }: DreamArchiveProps) {
     return `${month}.${day}.${year}`
   }
 
-  const handleEditTitle = (dreamId: string, newTitle: string) => {
-    const updatedDreams = dreams.map(dream => 
-      dream.id === dreamId 
-        ? { ...dream, user_title: newTitle || null }
-        : dream
-    )
-    saveDreams(updatedDreams)
+  const handleEditTitle = async (dreamId: string, newTitle: string) => {
+    await updateDream(dreamId, { user_title: newTitle || null })
     setIsEditingTitle(null)
   }
 
-  const handleDeleteDream = (dreamId: string) => {
+  const handleDeleteDream = async (dreamId: string) => {
     if (confirm('Are you sure you want to delete this dream?')) {
-      const updatedDreams = dreams.filter(dream => dream.id !== dreamId)
-      saveDreams(updatedDreams)
+      await deleteDream(dreamId)
       setSelectedDream(null)
     }
   }

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { PlusIcon, PersonIcon, GridIcon } from "@radix-ui/react-icons";
+import { useDreamStore } from '../lib/dreamStore';
 
 interface RecordingPanelProps {
   onBack: () => void;
@@ -36,6 +37,8 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
     { icon: GridIcon, label: "Dream Gallery" },
     { icon: PersonIcon, label: "Profile" },
   ];
+
+  const addDream = useDreamStore((state) => state.addDream);
 
   // Function to process transcript into structured JSON
   const processTranscriptToJSON = useCallback(async (transcript: string) => {
@@ -111,8 +114,8 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
         setVideoUrls(data.videoUrls);
         console.log("✅ Video generated successfully:", data.videoUrls.length, "videos");
         
-        // Save dream to localStorage after successful video generation
-        await saveDreamToLocalStorage(jsonData, data.videoUrls[0]);
+        // Save dream to Supabase after successful video generation
+        await saveDreamToSupabase(jsonData, data.videoUrls[0]);
       } else {
         setVideoError(data.error || "Failed to generate video");
         console.error("❌ Video generation failed:", data.error);
@@ -156,9 +159,8 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
     });
   };
 
-  // Function to save dream to localStorage
-  const saveDreamToLocalStorage = useCallback(async (structuredData: any, videoUrl: string) => {
-    // Always get the latest emojis from state at save time
+  // Function to save dream to Supabase
+  const saveDreamToSupabase = useCallback(async (structuredData: any, videoUrl: string) => {
     const latestEmojis = [...emojis];
     let video_thumbnail: string | null = null;
     try {
@@ -169,32 +171,18 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
     if (!video_thumbnail) {
       video_thumbnail = "/dreambackground1.png";
     }
-    console.log('Saving dream with emojis:', latestEmojis);
     const dream = {
-      id: crypto.randomUUID(),
-      user_title: null, // User can edit this later
+      user_title: null,
       ai_title: structuredData.title || "Untitled Dream",
       ai_description: structuredData.description || "A dream experience captured through voice and transformed into visual art.",
       transcript_raw: transcription || "",
       transcript_json: structuredData,
       video_url: videoUrl,
       video_thumbnail,
-      created_at: new Date().toISOString(),
-      emojis: latestEmojis
+      emojis: latestEmojis,
     };
-
-    // Get existing dreams from localStorage
-    const existingDreams = localStorage.getItem('dreams');
-    const dreams = existingDreams ? JSON.parse(existingDreams) : [];
-    
-    // Add new dream to the beginning
-    dreams.unshift(dream);
-    
-    // Save back to localStorage
-    localStorage.setItem('dreams', JSON.stringify(dreams));
-    
-    console.log("✅ Dream saved to localStorage:", dream.id);
-  }, [transcription, emojis]);
+    await addDream(dream);
+  }, [transcription, emojis, addDream]);
 
   // Function to create a new MediaRecorder with WAV format
   const createWavRecorder = useCallback((stream: MediaStream): MediaRecorder => {
