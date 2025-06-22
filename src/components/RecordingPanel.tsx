@@ -25,6 +25,8 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
   const [debugMenuOpen, setDebugMenuOpen] = useState(false);
   const [videoTitle, setVideoTitle] = useState("");
   const [titleDialogOpen, setTitleDialogOpen] = useState(false);
+  const [showProcessingToast, setShowProcessingToast] = useState(false);
+  const [showDoneToast, setShowDoneToast] = useState(false);
   
   // Configuration constants
   const CHUNK_DURATION_MS = 5000; // 5 seconds - optimal balance of speed and reliability
@@ -45,6 +47,12 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
   ];
 
   const addDream = useDreamStore((state) => state.addDream);
+  const {
+    videoJob,
+    startVideoJob,
+    updateVideoJob,
+    clearVideoJob
+  } = useDreamStore();
 
   // Timer for recording progress
   useEffect(() => {
@@ -109,56 +117,6 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
     }
   }, []);
 
-  // Function to generate video from structured JSON
-  const generateVideoFromJSON = useCallback(async (jsonData: any) => {
-    if (!jsonData) {
-      console.warn("⚠️ No JSON data to generate video from");
-      return;
-    }
-
-    setIsGeneratingVideo(true);
-    setVideoError(null);
-    setVideoUrls([]);
-    
-    try {
-      console.log("🎬 Starting video generation from structured JSON...");
-      
-      const response = await fetch('/api/veo', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          transcript: JSON.stringify(jsonData),
-          options: {
-            aspectRatio: "16:9",
-            personGeneration: "allow_all",
-            numberOfVideos: 1
-          }
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success && data.videoUrls) {
-        setVideoUrls(data.videoUrls);
-        console.log("✅ Video generated successfully:", data.videoUrls.length, "videos");
-        
-        // Save dream to Supabase after successful video generation
-        await saveDreamToSupabase(jsonData, data.videoUrls[0]);
-      } else {
-        setVideoError(data.error || "Failed to generate video");
-        console.error("❌ Video generation failed:", data.error);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
-      setVideoError(errorMessage);
-      console.error("❌ Error generating video:", err);
-    } finally {
-      setIsGeneratingVideo(false);
-    }
-  }, []);
-
   // Helper to extract first frame as base64 image
   const extractVideoThumbnail = (videoUrl: string): Promise<string | null> => {
     return new Promise((resolve) => {
@@ -213,6 +171,59 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
     };
     await addDream(dream);
   }, [transcription, emojis, addDream, videoTitle]);
+
+  // Function to generate video from structured JSON
+  const generateVideoFromJSON = useCallback(async (jsonData: any) => {
+    if (!jsonData) {
+      console.warn("⚠️ No JSON data to generate video from");
+      return;
+    }
+
+    setIsGeneratingVideo(true);
+    setVideoError(null);
+    setVideoUrls([]);
+    startVideoJob();
+    setShowProcessingToast(true);
+    try {
+      console.log("🎬 Starting video generation from structured JSON...");
+      const response = await fetch('/api/veo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transcript: JSON.stringify(jsonData),
+          options: {
+            aspectRatio: "16:9",
+            personGeneration: "allow_all",
+            numberOfVideos: 1
+          }
+        }),
+      });
+      const data = await response.json();
+      if (data.success && data.videoUrls) {
+        setVideoUrls(data.videoUrls);
+        console.log("✅ Video generated successfully:", data.videoUrls.length, "videos");
+        await saveDreamToSupabase(jsonData, data.videoUrls[0]);
+        updateVideoJob({ status: 'done', videoUrl: data.videoUrls[0] });
+        setShowProcessingToast(false);
+        setShowDoneToast(true);
+      } else {
+        setVideoError(data.error || "Failed to generate video");
+        console.error("❌ Video generation failed:", data.error);
+        updateVideoJob({ status: 'error', error: data.error || "Failed to generate video" });
+        setShowProcessingToast(false);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+      setVideoError(errorMessage);
+      console.error("❌ Error generating video:", err);
+      updateVideoJob({ status: 'error', error: errorMessage });
+      setShowProcessingToast(false);
+    } finally {
+      setIsGeneratingVideo(false);
+    }
+  }, [saveDreamToSupabase, updateVideoJob, startVideoJob]);
 
   // Function to create a new MediaRecorder with WAV format
   const createWavRecorder = useCallback((stream: MediaStream): MediaRecorder => {
@@ -407,6 +418,18 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
     setVideoError(null);
     setHasFinishedRecording(false);
   };
+
+  // Toast for processing
+  useEffect(() => {
+    if (videoJob.status === 'processing') setShowProcessingToast(true);
+    else setShowProcessingToast(false);
+  }, [videoJob.status]);
+
+  // Toast for done
+  useEffect(() => {
+    if (videoJob.status === 'done') setShowDoneToast(true);
+    else setShowDoneToast(false);
+  }, [videoJob.status]);
 
   return (
     <div className="flex flex-col items-center w-full h-full p-2">

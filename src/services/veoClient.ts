@@ -150,7 +150,7 @@ class VeoClient implements IVeoClient {
         const saved = typeof window !== 'undefined' ? localStorage.getItem('dreamer_profile') : null;
         if (saved) profile = JSON.parse(saved);
       } catch {}
-      const profileContext = `Dreamer Profile:\n- Self-description: ${profile.selfDescription || 'N/A'}\n- Visual/Artistic Style: ${profile.visualStyle || 'N/A'}\n- Triggers/Boundaries (AVOID in all outputs): ${profile.triggersAndBoundaries || 'N/A'}`;
+      const profileContext = `Dreamer Profile (MANDATORY CONTEXT — MUST BE REFLECTED IN THE VIDEO):\n- Self-description: ${profile.selfDescription || 'N/A'}\n  (You MUST incorporate this self-description into the style, perspective, and narrative of the video. The dream should be experienced and visualized through this lens.)\n- Visual/Artistic Style: ${profile.visualStyle || 'N/A'}\n- Triggers/Boundaries (STRICTLY AVOID in all outputs): ${profile.triggersAndBoundaries || 'N/A'}`;
       // Compose the prompt for Veo
       const prompt = `${profileContext}\n\nDream Structure:\n${JSON.stringify(structuredJson, null, 2)}`;
       

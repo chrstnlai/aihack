@@ -14,6 +14,13 @@ export interface Dream {
   emojis: string[];
 }
 
+interface VideoJob {
+  status: 'idle' | 'processing' | 'done' | 'error';
+  jobId?: string;
+  error?: string;
+  videoUrl?: string;
+}
+
 interface DreamStore {
   dreams: Dream[];
   loading: boolean;
@@ -22,12 +29,17 @@ interface DreamStore {
   addDream: (dream: Omit<Dream, 'id' | 'created_at'>) => Promise<void>;
   updateDream: (id: string, updates: Partial<Dream>) => Promise<void>;
   deleteDream: (id: string) => Promise<void>;
+  videoJob: VideoJob;
+  startVideoJob: (jobId?: string) => void;
+  updateVideoJob: (updates: Partial<VideoJob>) => void;
+  clearVideoJob: () => void;
 }
 
 export const useDreamStore = create<DreamStore>((set, get) => ({
   dreams: [],
   loading: false,
   error: null,
+  videoJob: { status: 'idle' },
 
   fetchDreams: async () => {
     set({ loading: true, error: null });
@@ -85,4 +97,8 @@ export const useDreamStore = create<DreamStore>((set, get) => ({
       set({ dreams: get().dreams.filter(d => d.id !== id), loading: false });
     }
   },
+
+  startVideoJob: (jobId) => set({ videoJob: { status: 'processing', jobId } }),
+  updateVideoJob: (updates) => set({ videoJob: { ...get().videoJob, ...updates } }),
+  clearVideoJob: () => set({ videoJob: { status: 'idle' } }),
 })); 
