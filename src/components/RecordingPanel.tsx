@@ -469,31 +469,6 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
           </div>
         )}
       </div>
-
-      {/* Bottom Sidebar */}
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-20">
-        <div
-          className={`flex items-center gap-2 md:gap-3 bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-full px-3 py-2 transition-all duration-300 ${
-            sidebarFocused ? "opacity-100 scale-105" : "opacity-60 hover:opacity-80"
-          }`}
-          onMouseEnter={() => setSidebarFocused(true)}
-          onMouseLeave={() => setSidebarFocused(false)}
-          onFocus={() => setSidebarFocused(true)}
-          onBlur={() => setSidebarFocused(false)}
-        >
-          {sidebarItems.map((item, index) => (
-            <button
-              key={index}
-              className={`p-1.5 md:p-2 rounded-full transition-all duration-200 hover:bg-gray-700/50 focus:bg-gray-700/50 focus:outline-none ${
-                index === 0 ? "bg-gray-700/30" : ""
-              }`}
-              title={item.label}
-            >
-              <item.icon className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-300" />
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
