@@ -107,7 +107,7 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
         onFocus={() => setSidebarFocused(true)}
         onBlur={() => setSidebarFocused(false)}
       >
-        <div className="flex flex-col gap-2 md:gap-3 flex-1">
+        <div className="flex-1 flex flex-col items-center justify-center gap-y-6 w-full">
           {sidebarItems.map((item, index) => (
             <button
               key={index}
