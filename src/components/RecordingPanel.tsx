@@ -16,7 +16,7 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [structuredData, setStructuredData] = useState<any>(null);
   const [isStructuring, setIsStructuring] = useState(false);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoUrls, setVideoUrls] = useState<string[]>([]);
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   
@@ -63,6 +63,9 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
       if (data.success && data.structuredData) {
         setStructuredData(data.structuredData);
         console.log("✅ Transcript structured successfully");
+        
+        // Automatically trigger video generation after JSON is created
+        await generateVideoFromJSON(data.structuredData);
       } else {
         console.error("❌ Failed to structure transcript:", data.error);
       }
@@ -70,6 +73,53 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
       console.error("❌ Error structuring transcript:", err);
     } finally {
       setIsStructuring(false);
+    }
+  }, []);
+
+  // Function to generate video from structured JSON
+  const generateVideoFromJSON = useCallback(async (jsonData: any) => {
+    if (!jsonData) {
+      console.warn("⚠️ No JSON data to generate video from");
+      return;
+    }
+
+    setIsGeneratingVideo(true);
+    setVideoError(null);
+    setVideoUrls([]);
+    
+    try {
+      console.log("🎬 Starting video generation from structured JSON...");
+      
+      const response = await fetch('/api/veo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transcript: JSON.stringify(jsonData),
+          options: {
+            aspectRatio: "16:9",
+            personGeneration: "allow_all",
+            numberOfVideos: 1
+          }
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.videoUrls) {
+        setVideoUrls(data.videoUrls);
+        console.log("✅ Video generated successfully:", data.videoUrls.length, "videos");
+      } else {
+        setVideoError(data.error || "Failed to generate video");
+        console.error("❌ Video generation failed:", data.error);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+      setVideoError(errorMessage);
+      console.error("❌ Error generating video:", err);
+    } finally {
+      setIsGeneratingVideo(false);
     }
   }, []);
 
@@ -262,6 +312,8 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
     setTranscription(null);
     setEmojis([]);
     setStructuredData(null);
+    setVideoUrls([]);
+    setVideoError(null);
     setHasFinishedRecording(false);
   };
 
@@ -365,6 +417,39 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
                     {JSON.stringify(structuredData, null, 2)}
                   </pre>
                 </div>
+              </div>
+            )}
+            
+            {/* Show video generation status and results */}
+            {isGeneratingVideo && (
+              <div className="mt-4 bg-purple-500/20 border border-purple-500/50 rounded-lg p-4">
+                <p className="text-purple-300 font-medium mb-2">🎬 Video is being created...</p>
+                <p className="text-purple-200 text-sm">This may take a few minutes. Please wait.</p>
+              </div>
+            )}
+            
+            {videoError && (
+              <div className="mt-4 bg-red-500/20 border border-red-500/50 rounded-lg p-4">
+                <h3 className="text-red-300 font-medium mb-2">❌ Video Generation Error:</h3>
+                <p className="text-red-200 text-sm">{videoError}</p>
+              </div>
+            )}
+            
+            {videoUrls.length > 0 && (
+              <div className="mt-4 bg-purple-500/20 border border-purple-500/50 rounded-lg p-4">
+                <h3 className="text-purple-300 font-medium mb-3 text-lg">🎬 Generated Dream Video:</h3>
+                {videoUrls.map((url, index) => (
+                  <div key={index} className="bg-gray-900/50 rounded-lg p-3">
+                    <video
+                      controls
+                      className="w-full rounded-lg"
+                      style={{ maxHeight: '400px' }}
+                    >
+                      <source src={url} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                ))}
               </div>
             )}
             

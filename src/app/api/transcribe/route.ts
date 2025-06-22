@@ -13,7 +13,7 @@ export async function POST(req: Request) {
         console.error("❌ No file received in request");
         return NextResponse.json({ success: false, error: "No audio file provided" }, { status: 400 });
       }
-
+  
       // Validate file size (minimum 1KB, maximum 50MB)
       const fileSize = file.size;
       if (fileSize < 1024) {
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
   
       // Clean up temp file
       try {
-        await unlink(filePath);
+      await unlink(filePath);
         console.log(`🗑️ Cleaned up temp file: ${filePath}`);
       } catch (cleanupError) {
         console.warn("⚠️ Failed to cleanup temp file:", cleanupError);
