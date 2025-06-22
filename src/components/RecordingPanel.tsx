@@ -11,6 +11,7 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
   const [sidebarFocused, setSidebarFocused] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [transcription, setTranscription] = useState<string | null>(null);
+  const [emojis, setEmojis] = useState<string[]>([]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
 
@@ -39,14 +40,22 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
             });
   
             const data = await response.json();
-            setTranscription((prev) => `${prev ?? ""} ${data.result?.text ?? ""}`);
+            
+            if (data.success) {
+              setTranscription((prev) => `${prev ?? ""} ${data.result?.text ?? ""}`);
+              
+              if (data.emoji) {
+                setEmojis((prev) => [...prev, data.emoji]);
+                console.log("🎵 Emoji detected:", data.emoji, "for transcript:", data.debug?.transcript);
+              }
+            }
           } catch (err) {
             console.error("Error uploading chunk:", err);
           }
         }
       };
   
-      mediaRecorder.start(5000); // Trigger every 5 seconds
+      mediaRecorder.start(5000);
       setIsRecording(true);
     } catch (err) {
       console.error("Error accessing microphone:", err);
@@ -90,6 +99,19 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
     </button>
   )}
 </div>
+
+        {emojis.length > 0 && (
+          <div className="mt-6 bg-gray-800/50 p-4 rounded-lg">
+            <h3 className="text-white font-medium mb-2">🎵 Detected Emojis:</h3>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {emojis.map((emoji, index) => (
+                <span key={index} className="text-2xl" title={`Chunk ${index + 1}`}>
+                  {emoji}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {transcription && (
           <pre className="mt-6 bg-gray-800 text-white p-4 rounded text-sm max-w-xl overflow-auto whitespace-pre-wrap">

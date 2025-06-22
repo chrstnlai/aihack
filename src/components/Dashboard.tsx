@@ -29,20 +29,22 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
   const [veoError, setVeoError] = useState<string | null>(null);
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [emojiInput, setEmojiInput] = useState("");
+  const [emojiResult, setEmojiResult] = useState<string | null>(null);
+  const [isEmojiProcessing, setIsEmojiProcessing] = useState(false);
   
   const sidebarItems = [
     { icon: PlusIcon, label: "Add" },
     { icon: GridIcon, label: "Favorites" },
     { icon: PersonIcon, label: "Profile" },
   ]
-  const [backgroundImage, setBackgroundImage] = useState("/backgrounds/dreambackground1.png");
+  const [backgroundImage, setBackgroundImage] = useState("/dreambackground1.png");
 
   const backgrounds = [
-    "/backgrounds/dreambackground1.png",
-    "/backgrounds/dreambackground2.png",
-    "/backgrounds/dreambackground3.png",
-    "/backgrounds/dreambackground4.png",
-    "/backgrounds/video.mp4",
+    "/dreambackground1.png",
+    "/dreambackground2.png",
+    "/dreambackground3.png",
+    "/dreambackground4.png",
   ];
 
   // Pick a random one on first render
@@ -70,7 +72,7 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
           transcript: veoInput,
           options: {
             aspectRatio: "16:9",
-            personGeneration: "allow_adult",
+            personGeneration: "allow_all",
             numberOfVideos: 1
           }
         }),
@@ -89,6 +91,39 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
       setVeoError(error instanceof Error ? error.message : 'An unknown error occurred');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleEmojiSubmit = async () => {
+    if (!emojiInput.trim()) return;
+    
+    setIsEmojiProcessing(true);
+    setEmojiResult(null);
+    
+    try {
+      const response = await fetch('/api/emoji', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transcript: emojiInput
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to detect emoji');
+      }
+      
+      setEmojiResult(data.emoji);
+      console.log("🎵 Debug - Emoji detected:", data.emoji, "for text:", emojiInput);
+    } catch (error) {
+      console.error("🎵 Debug - Emoji detection error:", error);
+      setEmojiResult("❌ Error");
+    } finally {
+      setIsEmojiProcessing(false);
     }
   };
 
@@ -134,52 +169,88 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
                 🔧 Veo Client Debug
               </h2>
               
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-white text-sm font-medium mb-2">
-                    Transcript/Prompt:
-                  </label>
-                  <textarea
-                    value={veoInput}
-                    onChange={(e) => setVeoInput(e.target.value)}
-                    placeholder="Enter your dream description or transcript here..."
-                    className="w-full bg-gray-900/50 border border-gray-700/50 text-white placeholder:text-gray-500 p-3 rounded-lg focus:border-gray-600 focus:ring-1 focus:ring-gray-600 transition-all duration-200 min-h-[100px] resize-y"
-                    disabled={isProcessing}
-                  />
+              <div className="space-y-6">
+                {/* Veo Testing Section */}
+                <div className="space-y-4">
+                  <h3 className="text-white font-medium text-lg">🎬 Video Generation:</h3>
+                  <div>
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Transcript/Prompt:
+                    </label>
+                    <textarea
+                      value={veoInput}
+                      onChange={(e) => setVeoInput(e.target.value)}
+                      placeholder="Enter your dream description or transcript here..."
+                      className="w-full bg-gray-900/50 border border-gray-700/50 text-white placeholder:text-gray-500 p-3 rounded-lg focus:border-gray-600 focus:ring-1 focus:ring-gray-600 transition-all duration-200 min-h-[100px] resize-y"
+                      disabled={isProcessing}
+                    />
+                  </div>
+                  
+                  <button
+                    onClick={handleVeoSubmit}
+                    disabled={isProcessing || !veoInput.trim()}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    {isProcessing ? "🔄 Processing..." : "🚀 Generate Video"}
+                  </button>
+                  
+                  {isProcessing && (
+                    <div className="text-center text-yellow-300 text-sm">
+                      ⏳ This may take a few minutes. Please wait...
+                    </div>
+                  )}
+                  
+                  {veoError && (
+                    <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3">
+                      <p className="text-red-300 font-medium">❌ Error:</p>
+                      <p className="text-red-200 text-sm mt-1">{veoError}</p>
+                    </div>
+                  )}
+                  
+                  {veoResult && (
+                    <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3">
+                      <p className="text-green-300 font-medium">✅ Success:</p>
+                      <p className="text-green-200 text-sm mt-1">{veoResult}</p>
+                    </div>
+                  )}
                 </div>
-                
-                <button
-                  onClick={handleVeoSubmit}
-                  disabled={isProcessing || !veoInput.trim()}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                >
-                  {isProcessing ? "🔄 Processing..." : "🚀 Generate Video"}
-                </button>
-                
-                {isProcessing && (
-                  <div className="text-center text-yellow-300 text-sm">
-                    ⏳ This may take a few minutes. Please wait...
+
+                {/* Emoji Testing Section */}
+                <div className="space-y-4 border-t border-white/20 pt-6">
+                  <h3 className="text-white font-medium text-lg">🎵 Emoji Detection:</h3>
+                  <div>
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Test Text:
+                    </label>
+                    <textarea
+                      value={emojiInput}
+                      onChange={(e) => setEmojiInput(e.target.value)}
+                      placeholder="Enter text to test emoji detection..."
+                      className="w-full bg-gray-900/50 border border-gray-700/50 text-white placeholder:text-gray-500 p-3 rounded-lg focus:border-gray-600 focus:ring-1 focus:ring-gray-600 transition-all duration-200 min-h-[80px] resize-y"
+                      disabled={isEmojiProcessing}
+                    />
                   </div>
-                )}
-                
-                {veoError && (
-                  <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3">
-                    <p className="text-red-300 font-medium">❌ Error:</p>
-                    <p className="text-red-200 text-sm mt-1">{veoError}</p>
-                  </div>
-                )}
-                
-                {veoResult && (
-                  <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3">
-                    <p className="text-green-300 font-medium">✅ Success:</p>
-                    <p className="text-green-200 text-sm mt-1">{veoResult}</p>
-                  </div>
-                )}
-                
+                  
+                  <button
+                    onClick={handleEmojiSubmit}
+                    disabled={isEmojiProcessing || !emojiInput.trim()}
+                    className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    {isEmojiProcessing ? "🔄 Detecting..." : "🎵 Detect Emoji"}
+                  </button>
+                  
+                  {emojiResult && (
+                    <div className="bg-purple-500/20 border border-purple-500/50 rounded-lg p-3 text-center">
+                      <p className="text-purple-300 font-medium mb-2">Detected Emoji:</p>
+                      <p className="text-4xl">{emojiResult}</p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Video Display */}
                 {videoUrls.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-white font-medium">🎬 Generated Videos:</h3>
+                  <div className="space-y-4 border-t border-white/20 pt-6">
+                    <h3 className="text-white font-medium text-lg">🎬 Generated Videos:</h3>
                     {videoUrls.map((url, index) => (
                       <div key={index} className="bg-gray-900/50 rounded-lg p-3">
                         <p className="text-gray-300 text-sm mb-2">Video {index + 1}:</p>
@@ -205,7 +276,7 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
                 
                 {/* Debug Information */}
                 {debugInfo && (
-                  <div className="bg-gray-800/50 border border-gray-600/50 rounded-lg p-3">
+                  <div className="bg-gray-800/50 border border-gray-600/50 rounded-lg p-3 border-t border-white/20 pt-6">
                     <h3 className="text-white font-medium mb-2">🔍 Debug Info:</h3>
                     <div className="text-gray-300 text-xs space-y-1">
                       <p><strong>Request Transcript:</strong> {debugInfo.requestTranscript}</p>
@@ -230,7 +301,7 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
               </p>
               <p className="text-center text-base md:text-lg font-light text-white p-6">
                 Your subconscious comes to life. Record your dreams with just your voice, and
-                watch as your words transform into vivid, surreal visualizations,turning your
+                watch as your words transform into vivid, surreal visualizations—turning your
                 dreams into something you can see, feel, and explore.
               </p>
               <button

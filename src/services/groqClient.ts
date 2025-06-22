@@ -25,4 +25,30 @@ export class GroqClient {
       return null;
     }
   }
+
+  async detectEmojiFromTranscript(transcript: string) {
+    try {
+      const completion = await this.groq.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: "You are an emoji detection system. Analyze the given transcript and return exactly one most relevant emoji that best represents the content, emotion, or theme. Only return the emoji character, nothing else."
+          },
+          {
+            role: "user",
+            content: `Analyze this transcript and return one relevant emoji: "${transcript}"`
+          }
+        ],
+        model: "llama-3.1-8b-instant",
+        temperature: 0.1,
+        max_tokens: 5
+      });
+      
+      const emoji = completion.choices[0]?.message?.content?.trim();
+      return emoji || "🎵";
+    } catch (error: any) {
+      console.error("-------- EMOJI DETECTION ERROR ---------\n", error.message || error);
+      return "🎵";
+    }
+  }
 }

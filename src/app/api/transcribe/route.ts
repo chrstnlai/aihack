@@ -28,7 +28,20 @@ export async function POST(req: Request) {
   
       await unlink(filePath);
   
-      return NextResponse.json({ success: true, result });
+      if (result && result.text) {
+        const emoji = await transcriber.detectEmojiFromTranscript(result.text);
+        return NextResponse.json({ 
+          success: true, 
+          result,
+          emoji,
+          debug: {
+            transcript: result.text,
+            detectedEmoji: emoji
+          }
+        });
+      }
+  
+      return NextResponse.json({ success: true, result, emoji: "🎵" });
     } catch (err: any) {
       console.error("🔥 Transcription API Error:", err);
       return NextResponse.json({ success: false, error: err.message }, { status: 500 });
