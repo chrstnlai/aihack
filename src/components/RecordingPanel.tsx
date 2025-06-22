@@ -14,6 +14,11 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
   const [transcription, setTranscription] = useState<string | null>(null);
   const [emojis, setEmojis] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [structuredData, setStructuredData] = useState<any>(null);
+  const [isStructuring, setIsStructuring] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
   
   // Configuration constants
   const CHUNK_DURATION_MS = 5000; // 5 seconds - optimal balance of speed and reliability
@@ -31,6 +36,42 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
     { icon: GridIcon, label: "Dream Gallery" },
     { icon: PersonIcon, label: "Profile" },
   ];
+
+  // Function to process transcript into structured JSON
+  const processTranscriptToJSON = useCallback(async (transcript: string) => {
+    if (!transcript || transcript.trim().length === 0) {
+      console.warn("⚠️ No transcript to structure");
+      return;
+    }
+
+    setIsStructuring(true);
+    try {
+      console.log("🔄 Processing transcript into structured JSON...");
+      
+      const response = await fetch('/api/structure', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transcript: transcript
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.structuredData) {
+        setStructuredData(data.structuredData);
+        console.log("✅ Transcript structured successfully");
+      } else {
+        console.error("❌ Failed to structure transcript:", data.error);
+      }
+    } catch (err) {
+      console.error("❌ Error structuring transcript:", err);
+    } finally {
+      setIsStructuring(false);
+    }
+  }, []);
 
   // Function to create a new MediaRecorder with WAV format
   const createWavRecorder = useCallback((stream: MediaStream): MediaRecorder => {
@@ -166,7 +207,13 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
           const response = await fetch("/api/transcribe", { method: "POST", body: formData });
           const data = await response.json();
           if (data.success) {
-            setTranscription(data.result?.text || "");
+            const transcriptText = data.result?.text || "";
+            setTranscription(transcriptText);
+            
+            // Process transcript into structured JSON after successful transcription
+            if (transcriptText.trim().length > 0) {
+              await processTranscriptToJSON(transcriptText);
+            }
           }
         } catch (err) {
           console.error("Error processing complete recording:", err);
@@ -214,6 +261,7 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
   const resetRecording = () => {
     setTranscription(null);
     setEmojis([]);
+    setStructuredData(null);
     setHasFinishedRecording(false);
   };
 
@@ -286,6 +334,39 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
                 {transcription.trim()}
               </pre>
             </div>
+            
+            {/* Show structured JSON data */}
+            {isStructuring && (
+              <div className="mt-4 bg-blue-500/20 border border-blue-500/50 rounded-lg p-4">
+                <p className="text-blue-300 font-medium mb-2">🔄 Processing transcript into structured JSON...</p>
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-300"></div>
+                </div>
+              </div>
+            )}
+            
+            {structuredData && (
+              <div className="mt-4 bg-green-500/20 border border-green-500/50 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-green-300 font-medium text-lg">📊 Structured Dream Data:</h3>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(JSON.stringify(structuredData, null, 2));
+                      // You could add a toast notification here
+                    }}
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                    title="Copy JSON to clipboard"
+                  >
+                    📋 Copy JSON
+                  </button>
+                </div>
+                <div className="bg-gray-900/50 rounded-lg p-3 overflow-auto max-h-96">
+                  <pre className="text-green-200 text-xs leading-relaxed whitespace-pre-wrap text-left">
+                    {JSON.stringify(structuredData, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            )}
             
             {/* Show final emoji summary */}
             {emojis.length > 0 && (
