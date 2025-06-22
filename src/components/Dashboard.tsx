@@ -69,7 +69,7 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
           transcript: veoInput,
           options: {
             aspectRatio: "16:9",
-            personGeneration: "dont_allow",
+            personGeneration: "allow_adult",
             numberOfVideos: 1
           }
         }),
