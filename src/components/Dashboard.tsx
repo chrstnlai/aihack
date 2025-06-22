@@ -1,15 +1,14 @@
 "use client"
 
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import RecordingPanel from "@/components/RecordingPanel";
+
 import { 
   PlusIcon, 
-  HomeIcon, 
-  MagnifyingGlassIcon, 
-  GearIcon, 
   PersonIcon, 
-  FileTextIcon, 
-  HeartIcon 
+  GridIcon
+  
 } from "@radix-ui/react-icons"
 
 interface DashboardProps {
@@ -19,91 +18,82 @@ interface DashboardProps {
 
 export default function Dashboard({ appLogo = "✦", userName = "Christine" }: DashboardProps) {
   const [sidebarFocused, setSidebarFocused] = useState(false)
-
+  const [hasClickedRecord, setHasClickedRecord] = useState(false);
+  const [showRecordingPanel, setShowRecordingPanel] = useState(false);
   const sidebarItems = [
     { icon: PlusIcon, label: "Add" },
-    { icon: HomeIcon, label: "Home" },
-    { icon: MagnifyingGlassIcon, label: "Search" },
-    { icon: FileTextIcon, label: "Files" },
-    { icon: GearIcon, label: "Settings" },
-    { icon: HeartIcon, label: "Favorites" },
+    { icon: GridIcon, label: "Favorites" },
     { icon: PersonIcon, label: "Profile" },
   ]
+  const [backgroundImage, setBackgroundImage] = useState("/dreambackground1.png");
+
+  const backgrounds = [
+    "/dreambackground1.png",
+    "/dreambackground2.png",
+    "/dreambackground3.png",
+    "/dreambackground4.png",
+  ];
+
+  // Pick a random one on first render
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * backgrounds.length);
+    setBackgroundImage(backgrounds[randomIndex]);
+  }, []);
+  //initilizing Groq client
+  // const groq = new Groq();
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
-      {/* Dot pattern background layer */}
-      <div
-        className="absolute inset-0 opacity-30"
+    {/* Dot pattern background */}
+    <div
+      className="absolute inset-0 opacity-30"
+      style={{
+        backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)`,
+        backgroundSize: "20px 20px",
+      }}
+    />
+    {/* Image background */}
+    <div
+        className="absolute inset-0 bg-cover bg-center opacity-60"
         style={{
-          backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)`,
-          backgroundSize: "20px 20px",
+          backgroundImage: `url('${backgroundImage}')`,
+          zIndex: 0,
         }}
       />
 
-      {/* Main background layer */}
-      <div
-  className="absolute inset-0 bg-cover bg-center opacity-60"
-  style={{
-    backgroundImage: "url('/dreambackground1.png')",
-    zIndex: 0,
-  }}
-/>
+    {/* Main layer */}
+    <div className="relative z-10 flex flex-col h-screen">
+      {/* Header */}
+      <header className="flex items-center justify-between p-3 md:p-4">
+      
+      </header>
 
-      {/* Content layer */}
-      <div className="relative z-10 flex flex-col h-screen">
-        {/* Header */}
-        <header className="flex items-center justify-between p-3 md:p-4">
-          <div className="flex items-center gap-3">
-            <div className="text-xl font-bold">{appLogo}</div>
-            <h1 className="text-base md:text-lg font-light">Nice to see , {userName}</h1>
-          </div>
-        </header>
-
-        {/* Main Content Area */}
-        <main className="flex-1 flex items-center justify-center p-3 md:p-6">
-          <div className="w-full max-w-2xl">
-            <div className="text-center mb-8">
-            <p className="text-white text-sm md:text-base mb-6">
-                Dreamscape
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center p-3 md:p-6">
+        <div className="w-full max-w-2xl">
+          {!hasClickedRecord ? (
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 md:p-8 shadow-lg flex flex-col items-center transition-all duration-300">
+              <p className="text-white text-lg md:text-xl font-semibold mb-4 text-center">
+                DREAMSCAPE
               </p>
-            </div>
-
-            {/* Main Input */}
-            <div className="relative">
-              <Input
-                placeholder="Start typing or double-click to create..."
-                className="w-full bg-gray-900/50 border-gray-700/50 text-white placeholder:text-white h-10 md:h-12 text-sm md:text-base px-3 md:px-4 rounded-lg focus:border-gray-600 focus:ring-1 focus:ring-gray-600 transition-all duration-200"
-              />
-            </div>
-          </div>
-        </main>
-
-        {/* Bottom Horizontal Sidebar */}
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-20">
-          <div
-            className={`flex items-center gap-2 md:gap-3 bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-full px-3 py-2 transition-all duration-300 ${
-              sidebarFocused ? "opacity-100 scale-105" : "opacity-60 hover:opacity-80"
-            }`}
-            onMouseEnter={() => setSidebarFocused(true)}
-            onMouseLeave={() => setSidebarFocused(false)}
-            onFocus={() => setSidebarFocused(true)}
-            onBlur={() => setSidebarFocused(false)}
-          >
-            {sidebarItems.map((item, index) => (
+              <p className="text-center text-base md:text-lg font-light text-white p-6">
+                Your subconscious comes to life. Record your dreams with just your voice, and
+                watch as your words transform into vivid, surreal visualizations—turning your
+                dreams into something you can see, feel, and explore.
+              </p>
               <button
-                key={index}
-                className={`p-1.5 md:p-2 rounded-full transition-all duration-200 hover:bg-gray-700/50 focus:bg-gray-700/50 focus:outline-none ${
-                  index === 0 ? "bg-gray-700/30" : ""
-                }`}
-                title={item.label}
+                className="bg-white text-black px-4 py-2 rounded-full text-lg font-medium shadow-sm hover:bg-gray-100 transition mb-6"
+                onClick={() => setHasClickedRecord(true)}
               >
-                <item.icon className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-300" />
+                Record Dream
               </button>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <RecordingPanel onBack={() => setHasClickedRecord(false)} />
+          )}
         </div>
-      </div>
+      </main>
     </div>
+  </div>
   )
 } 
