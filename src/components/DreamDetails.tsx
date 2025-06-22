@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 
 interface Dream {
   id: string
@@ -26,6 +26,61 @@ export default function DreamDetails({ dream, onBack, onEditTitle, onDelete }: D
   const [showVideoOverlay, setShowVideoOverlay] = useState(false)
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [editedTitle, setEditedTitle] = useState(dream.user_title || "")
+  const [extraThumb1, setExtraThumb1] = useState<string | null>(null)
+  const [extraThumb2, setExtraThumb2] = useState<string | null>(null)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+
+  const extractFrame = (video: HTMLVideoElement, time: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      video.currentTime = time;
+      const onSeeked = () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/png'));
+        } else {
+          reject('No canvas context');
+        }
+        video.removeEventListener('seeked', onSeeked);
+      };
+      video.addEventListener('seeked', onSeeked);
+    });
+  };
+
+  useEffect(() => {
+    if (!dream.video_url) return;
+    let cancelled = false;
+    const video = document.createElement('video');
+    video.src = dream.video_url;
+    video.crossOrigin = 'anonymous';
+    video.preload = 'auto';
+    video.muted = true;
+    video.playsInline = true;
+    video.addEventListener('loadedmetadata', async () => {
+      if (video.duration && video.duration > 2) {
+        const t1 = video.duration * 0.5;
+        const t2 = video.duration * 0.9;
+        try {
+          const [thumb1, thumb2] = await Promise.all([
+            extractFrame(video, t1),
+            extractFrame(video, t2),
+          ]);
+          if (!cancelled) {
+            setExtraThumb1(thumb1);
+            setExtraThumb2(thumb2);
+          }
+        } catch (e) {
+          // Ignore errors
+        }
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [dream.video_url]);
 
   const copyToClipboard = async (content: string, type: string) => {
     try {
@@ -58,15 +113,15 @@ export default function DreamDetails({ dream, onBack, onEditTitle, onDelete }: D
       {/* No back button */}
 
       <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6">
-        <div className="w-full mx-auto flex flex-col lg:flex-row gap-8">
+        <div className="w-full mx-auto flex flex-col lg:grid lg:grid-cols-3 gap-8">
           {/* Left Panel - Dream Thumbnail */}
-          <div className="w-full lg:w-2/3 flex flex-col justify-center">
-            <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden">
-              <div className="relative aspect-video w-full">
+          <div className="lg:col-span-2">
+            <div>
+              <div className="relative">
                 <img
                   src={dream.video_thumbnail || "/dreambackground1.png"}
                   alt="Dream visualization"
-                  className="w-full h-full object-cover absolute inset-0"
+                  className="w-full aspect-video object-cover"
                 />
                 <button
                   onClick={() => setShowVideoOverlay(true)}
@@ -77,15 +132,23 @@ export default function DreamDetails({ dream, onBack, onEditTitle, onDelete }: D
                   </div>
                 </button>
               </div>
+              {/* Extra thumbnails below main thumbnail, all same size, no extra container */}
+              {extraThumb1 && (
+                <img src={extraThumb1} alt="Middle frame" className="w-full aspect-video object-cover rounded border border-gray-700 mt-3" />
+              )}
+              {extraThumb2 && (
+                <img src={extraThumb2} alt="End frame" className="w-full aspect-video object-cover rounded border border-gray-700 mt-3" />
+              )}
             </div>
           </div>
 
           {/* Right Panel - Dream Metadata */}
-          <div className="w-full lg:w-1/3 flex flex-col space-y-6">
+          <div className="space-y-6">
             {/* AI Title Section */}
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Dream Title</h3>
               <div className="text-white font-medium">{dream.ai_title}</div>
+              
               {/* User Title Section */}
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Your Title</h4>
@@ -146,14 +209,14 @@ export default function DreamDetails({ dream, onBack, onEditTitle, onDelete }: D
                   className="w-full underline text-blue-300 hover:text-blue-400 cursor-pointer text-sm flex items-center"
                   style={{border: 'none', background: 'none', padding: 0, margin: 0}}
                 >
-                  Copy Raw Transcript ↗
+                  Raw transcript ↗
                 </span>
                 <span
                   onClick={() => copyToClipboard(JSON.stringify(dream.transcript_json, null, 2), "JSON transcript")}
                   className="w-full underline text-blue-300 hover:text-blue-400 cursor-pointer text-sm flex items-center"
                   style={{border: 'none', background: 'none', padding: 0, margin: 0}}
                 >
-                  Copy JSON Transcript ↗
+                  JSON transcript ↗
                 </span>
               </div>
             </div>
@@ -163,10 +226,10 @@ export default function DreamDetails({ dream, onBack, onEditTitle, onDelete }: D
               <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Video</h3>
               <span
                 onClick={() => setShowVideoOverlay(true)}
-                className="w-full underline text-blue-300 hover:text-blue-400 cursor-pointer text-sm flex items-center justify-center"
+                className="w-full underline text-blue-300 hover:text-blue-400 cursor-pointer text-sm flex "
                 style={{border: 'none', background: 'none', padding: 0, margin: 0}}
               >
-                ▶️ Play Video ↗
+                Play video ↗
               </span>
             </div>
 
@@ -185,7 +248,7 @@ export default function DreamDetails({ dream, onBack, onEditTitle, onDelete }: D
                   className="w-full underline text-red-400 hover:text-red-600 cursor-pointer text-sm flex items-center"
                   style={{border: 'none', background: 'none', padding: 0, margin: 0}}
                 >
-                  🗑️ Delete Dream ↗
+                  Delete
                 </span>
               </div>
             )}

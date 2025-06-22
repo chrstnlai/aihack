@@ -432,15 +432,23 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
         </div>
       ) : isRecording ? (
         <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-8 w-full max-w-xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8">
-          {/* Left: Animated MoonIcon with fill */}
-          <div className="flex-1 flex items-center justify-center">
-            <div className="relative w-32 h-32 md:w-48 md:h-48 flex items-center justify-center">
+          {/* Left: Animated MoonIcon with fill, audio visualizer, and emoji row */}
+          <div className="flex-1 flex flex-col items-center justify-center relative">
+            <div className="relative w-32 h-32 md:w-48 md:h-48 flex items-center justify-center z-10">
               <MoonIconFilled progress={recordingProgress} size={192} useGradient={true} />
             </div>
+            {/* Emoji Row */}
+            {isRecording && emojis.length > 0 && (
+              <div className="flex flex-row gap-1 mt-2 w-full max-w-xs justify-center">
+                {emojis.map((emoji, i) => (
+                  <span key={i} className="inline-block w-6 h-6 text-2xl text-center align-right opacity-50">{emoji}</span>
+                ))}
+              </div>
+            )}
           </div>
           {/* Right: Text and Controls */}
           <div className="flex-1 flex flex-col items-center justify-center text-center">
-            <p className="text-xl text-white text-center mb-4">
+            <p className="text-xl text-white text-center mb-4 opacity-40">
               {`🎙️ Recording in progress... (${Math.round((1-recordingProgress)*60)}s left)`}
             </p>
             <div className="flex gap-4 justify-center">
@@ -483,7 +491,7 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
                 <p className="text-white text-opacity-70 text-sm mb-2">This may take from 15 seconds to 2 minutes to generate.</p>
                 <div className="mb-2">
                   {videoTitle ? (
-                    <span className="text-white text-base text-xs opacity-50 font-light">{videoTitle} is being created...</span>
+                    <span className="text-white text-base text-xs opacity-50 font-light"><span className="font-bold">{videoTitle}</span> is being created...</span>
                   ) : (
                     <button
                       className="text-blue-300 underline text-sm hover:text-blue-400 transition"

@@ -131,7 +131,7 @@ export default function DreamArchive({ onBack }: DreamArchiveProps) {
                       </button>
                       <button
                         className="text-white hover:text-red-500 transition-colors"
-                        title="Delete Dream"
+                        title="Delete"
                         onClick={e => { e.stopPropagation(); handleDeleteDream(dream.id); }}
                       >
                         <TrashIcon className="w-5 h-5" />
