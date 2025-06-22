@@ -92,6 +92,13 @@ export class GroqClient {
         console.log("⚠️ Empty transcript, cannot structure");
         return null;
       }
+      // Load dreamer profile from localStorage
+      let profile = { selfDescription: '', triggersAndBoundaries: '', visualStyle: '' };
+      try {
+        const saved = typeof window !== 'undefined' ? localStorage.getItem('dreamer_profile') : null;
+        if (saved) profile = JSON.parse(saved);
+      } catch {}
+      const profileContext = `Dreamer Profile:\n- Self-description: ${profile.selfDescription || 'N/A'}\n- Visual/Artistic Style: ${profile.visualStyle || 'N/A'}\n- Triggers/Boundaries (AVOID in all outputs): ${profile.triggersAndBoundaries || 'N/A'}`;
       
       console.log(`📊 Structuring transcript: "${transcript.substring(0, 50)}..."`);
       
@@ -99,7 +106,7 @@ export class GroqClient {
         messages: [
           {
             role: "system",
-            content: `You are a dream analysis system that converts raw dream transcripts into detailed, structured JSON data.\n\nYour task is to analyze the transcript and create a comprehensive JSON structure that captures:\n1. A top-level 'title' field: a short, creative, AI-generated title for the dream.\n2. A top-level 'description' field: a vivid, AI-generated summary of the dream in 1-2 sentences.\n3. A 'details' field: a detailed structure that includes sequential order of events, all elements mentioned (people, places, objects, emotions), actions and interactions, environmental details, emotional states and themes, temporal relationships, spatial relationships, and symbolic elements.\n\nReturn ONLY valid JSON. Do not include any explanatory text, markdown formatting, or code blocks. The JSON should be immediately parseable.`
+            content: `${profileContext}\n\nYou are a dream analysis system that converts raw dream transcripts into detailed, structured JSON data.\n\nYour task is to analyze the transcript and create a comprehensive JSON structure that captures:\n1. A top-level 'title' field: a short, creative, AI-generated title for the dream.\n2. A top-level 'description' field: a vivid, AI-generated summary of the dream in 1-2 sentences.\n3. A 'details' field: a detailed structure that includes sequential order of events, all elements mentioned (people, places, objects, emotions), actions and interactions, environmental details, emotional states and themes, temporal relationships, spatial relationships, and symbolic elements.\n\nReturn ONLY valid JSON. Do not include any explanatory text, markdown formatting, or code blocks. The JSON should be immediately parseable.`
           },
           {
             role: "user",

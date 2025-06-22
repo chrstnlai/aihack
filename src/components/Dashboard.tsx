@@ -6,6 +6,7 @@ import RecordingPanel from "@/components/RecordingPanel";
 import DreamArchive from "@/components/DreamArchive";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
+import SettingsProfile from "@/components/SettingsProfile";
 
 import { 
   PlusIcon, 
@@ -164,11 +165,13 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
         </header>
 
         {/* Main Content Area */}
-        <main className="relative z-10 flex-1 flex items-center justify-center p-3 md:p-6">
-          <div className="w-full max-w-2xl">
+        <main className="relative z-10 flex-1 flex justify-center pt-8 md:pt-12 pb-4 px-3 md:px-6">
+          <div className="w-full max-w-xl">
             {showArchive ? (
               // Dream Archive
               <DreamArchive onBack={() => setShowArchive(false)} />
+            ) : currentStep === "settings" ? (
+              <SettingsProfile />
             ) : !hasClickedRecord ? (
               // Dreamscape Intro
               <>

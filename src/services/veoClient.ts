@@ -18,6 +18,8 @@ export interface IVeoClient {
       negativePrompt?: string;
     }
   ): Promise<string[]>;
+
+  generateDreamVideo(structuredJson: any): Promise<string[] | null>;
 }
 
 class VeoClient implements IVeoClient {
@@ -134,6 +136,32 @@ class VeoClient implements IVeoClient {
     
     console.log('🎬 Veo Client - Final video URLs:', videoUrls);
     return videoUrls;
+  }
+
+  async generateDreamVideo(structuredJson: any): Promise<string[] | null> {
+    try {
+      if (!structuredJson) {
+        console.log("⚠️ No structured JSON, cannot generate video");
+        return null;
+      }
+      // Load dreamer profile from localStorage
+      let profile = { selfDescription: '', triggersAndBoundaries: '', visualStyle: '' };
+      try {
+        const saved = typeof window !== 'undefined' ? localStorage.getItem('dreamer_profile') : null;
+        if (saved) profile = JSON.parse(saved);
+      } catch {}
+      const profileContext = `Dreamer Profile:\n- Self-description: ${profile.selfDescription || 'N/A'}\n- Visual/Artistic Style: ${profile.visualStyle || 'N/A'}\n- Triggers/Boundaries (AVOID in all outputs): ${profile.triggersAndBoundaries || 'N/A'}`;
+      // Compose the prompt for Veo
+      const prompt = `${profileContext}\n\nDream Structure:\n${JSON.stringify(structuredJson, null, 2)}`;
+      
+      console.log("🎬 Generating video with prompt:", prompt.substring(0, 200));
+      // ... existing code to call Veo API with this prompt ...
+      // ... existing code ...
+    } catch (error) {
+      console.error("🚨 Error generating dream video:", error);
+      return null;
+    }
+    return null;
   }
 }
 
