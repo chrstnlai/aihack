@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { PlusIcon, PersonIcon, GridIcon, MoonIcon } from "@radix-ui/react-icons";
+import { PlusIcon, PersonIcon, GridIcon, MoonIcon, GlobeIcon, SymbolIcon, MixIcon } from "@radix-ui/react-icons";
 import { useDreamStore } from '../lib/dreamStore';
 import { motion } from "framer-motion";
 
@@ -22,6 +22,9 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [recordingProgress, setRecordingProgress] = useState(0);
+  const [debugMenuOpen, setDebugMenuOpen] = useState(false);
+  const [videoTitle, setVideoTitle] = useState("");
+  const [titleDialogOpen, setTitleDialogOpen] = useState(false);
   
   // Configuration constants
   const CHUNK_DURATION_MS = 5000; // 5 seconds - optimal balance of speed and reliability
@@ -71,6 +74,7 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
     }
 
     setIsStructuring(true);
+    setIsProcessing(true);
     try {
       console.log("🔄 Processing transcript into structured JSON...");
       
@@ -88,14 +92,17 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
       
       if (data.success && data.structuredData) {
         setStructuredData(data.structuredData);
+        setIsProcessing(false);
         console.log("✅ Transcript structured successfully");
         
         // Automatically trigger video generation after JSON is created
         await generateVideoFromJSON(data.structuredData);
       } else {
+        setIsProcessing(false);
         console.error("❌ Failed to structure transcript:", data.error);
       }
     } catch (err) {
+      setIsProcessing(false);
       console.error("❌ Error structuring transcript:", err);
     } finally {
       setIsStructuring(false);
@@ -196,7 +203,7 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
     }
     const dream = {
       user_title: null,
-      ai_title: structuredData.title || "Untitled Dream",
+      ai_title: videoTitle || structuredData.title || "Untitled Dream",
       ai_description: structuredData.description || "A dream experience captured through voice and transformed into visual art.",
       transcript_raw: transcription || "",
       transcript_json: structuredData,
@@ -205,7 +212,7 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
       emojis: latestEmojis,
     };
     await addDream(dream);
-  }, [transcription, emojis, addDream]);
+  }, [transcription, emojis, addDream, videoTitle]);
 
   // Function to create a new MediaRecorder with WAV format
   const createWavRecorder = useCallback((stream: MediaStream): MediaRecorder => {
@@ -408,7 +415,7 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
           {/* Left: Large MoonIcon */}
           <div className="flex-1 flex items-center justify-center">
             <div className="relative w-32 h-32 md:w-48 md:h-48 flex items-center justify-center">
-              <MoonIconFilled progress={0} size={192} />
+              <MoonIconFilled progress={0} size={192} useGradient={false} />
             </div>
           </div>
           {/* Right: Text and Button */}
@@ -428,7 +435,7 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
           {/* Left: Animated MoonIcon with fill */}
           <div className="flex-1 flex items-center justify-center">
             <div className="relative w-32 h-32 md:w-48 md:h-48 flex items-center justify-center">
-              <MoonIconFilled progress={recordingProgress} size={192} />
+              <MoonIconFilled progress={recordingProgress} size={192} useGradient={true} />
             </div>
           </div>
           {/* Right: Text and Controls */}
@@ -439,172 +446,140 @@ export default function RecordingPanel({ onBack }: RecordingPanelProps) {
             <div className="flex gap-4 justify-center">
               <button
                 onClick={stopRecording}
-                className="bg-blue-500 text-white px-4 py-2 rounded-full"
+                className="bg-red-500 opacity-50 hover:opacity-100 border border-white/20 text-white px-4 py-2 rounded-full"
               >
-                Stop Recording
+                Stop recording
               </button>
             </div>
           </div>
         </div>
       ) : (
-        <div className="text-white mt-6 text-center">
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-8 w-full max-w-xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8">
-              {/* Left: Large MoonIcon (empty) */}
-              <div className="flex-1 flex items-center justify-center">
-                <div className="relative w-32 h-32 md:w-48 md:h-48 flex items-center justify-center">
-                  <MoonIconFilled progress={0} size={192} />
-                </div>
-              </div>
-              {/* Right: Finished state content */}
-              <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <p className="text-xl text-white text-center mb-4">
-                  {isProcessing ? "🔄 Processing complete recording..." : "✅ Recording completed!"}
-                </p>
-                <div className="flex gap-4 justify-center">
-                  <button
-                    onClick={resetRecording}
-                    className="bg-gray-600 text-white px-4 py-2 rounded-full font-medium transition"
-                  >
-                    Record Again
-                  </button>
-                </div>
-              </div>
+        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-8 w-full max-w-xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8">
+          {/* Left: Icon based on processing step */}
+          <div className="flex-1 flex items-center justify-center">
+            <div className="relative w-32 h-32 md:w-48 md:h-48 flex items-center justify-center">
+              {isProcessing ? (
+                <GlobeIcon className="w-20 h-20 md:w-32 md:h-32 text-white opacity-30" />
+              ) : isGeneratingVideo ? (
+                <SymbolIcon className="w-20 h-20 md:w-32 md:h-32 text-white opacity-30" />
+              ) : (
+                <MixIcon className="w-28 h-28 md:w-40 md:h-40 text-white opacity-60" />
+              )}
             </div>
           </div>
-
-          {/* Show emojis during recording */}
-          {isRecording && emojis.length > 0 && (
-            <div className="mt-6 bg-gray-800/50 p-4 rounded-lg">
-              <h3 className="text-white font-medium mb-2">🎵 Live Emojis:</h3>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {emojis.map((emoji, index) => (
-                  <span key={index} className="text-2xl" title={`Chunk ${index + 1}`}>
-                    {emoji}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Show complete transcript only after recording finishes */}
-          {hasFinishedRecording && transcription && (
-            <div className="mt-6 w-full max-w-2xl">
-              <h3 className="text-white font-medium mb-3 text-lg">📝 Complete Dream Transcript:</h3>
-              <div className="bg-gray-800/50 backdrop-blur-sm border border-white/20 rounded-lg p-4">
-                <pre className="text-white text-sm leading-relaxed whitespace-pre-wrap overflow-auto max-h-96">
-                  {transcription.trim()}
-                </pre>
-              </div>
-              
-              {/* Show structured JSON data */}
-              {isStructuring && (
-                <div className="mt-4 bg-blue-500/20 border border-blue-500/50 rounded-lg p-4">
-                  <p className="text-blue-300 font-medium mb-2">🔄 Processing transcript into structured JSON...</p>
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-300"></div>
-                  </div>
-                </div>
-              )}
-              
-              {structuredData && (
-                <div className="mt-4 bg-green-500/20 border border-green-500/50 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-green-300 font-medium text-lg">📊 Structured Dream Data:</h3>
+          {/* Right: Status text and controls */}
+          <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <p className="text-xl text-white text-center mb-4">
+              {isProcessing
+                ? "Translating your thoughts..."
+                : isGeneratingVideo
+                  ? "Creating your dream video..."
+                  : videoTitle
+                    ? (<span><span className="font-bold">{videoTitle}</span> has been successfully created!</span>)
+                    : "Your dream has been created!"}
+            </p>
+            {isGeneratingVideo && (
+              <>
+                <p className="text-white text-opacity-70 text-sm mb-2">This may take from 15 seconds to 2 minutes to generate.</p>
+                <div className="mb-2">
+                  {videoTitle ? (
+                    <span className="text-white text-base text-xs opacity-50 font-light">{videoTitle} is being created...</span>
+                  ) : (
                     <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(JSON.stringify(structuredData, null, 2));
-                        // You could add a toast notification here
-                      }}
-                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
-                      title="Copy JSON to clipboard"
+                      className="text-blue-300 underline text-sm hover:text-blue-400 transition"
+                      onClick={() => setTitleDialogOpen(true)}
                     >
-                      📋 Copy JSON
+                      Add a title to your dream
                     </button>
-                  </div>
-                  <div className="bg-gray-900/50 rounded-lg p-3 overflow-auto max-h-96">
-                    <pre className="text-green-200 text-xs leading-relaxed whitespace-pre-wrap text-left">
-                      {JSON.stringify(structuredData, null, 2)}
-                    </pre>
-                  </div>
+                  )}
                 </div>
-              )}
-              
-              {/* Show video generation status and results */}
-              {isGeneratingVideo && (
-                <div className="mt-4 bg-purple-500/20 border border-purple-500/50 rounded-lg p-4">
-                  <p className="text-purple-300 font-medium mb-2">🎬 Video is being created...</p>
-                  <p className="text-purple-200 text-sm">This may take a few minutes. Please wait.</p>
-                </div>
-              )}
-              
-              {videoError && (
-                <div className="mt-4 bg-red-500/20 border border-red-500/50 rounded-lg p-4">
-                  <h3 className="text-red-300 font-medium mb-2">❌ Video Generation Error:</h3>
-                  <p className="text-red-200 text-sm">{videoError}</p>
-                </div>
-              )}
-              
-              {videoUrls.length > 0 && (
-                <div className="mt-4 bg-purple-500/20 border border-purple-500/50 rounded-lg p-4">
-                  <h3 className="text-purple-300 font-medium mb-3 text-lg">🎬 Generated Dream Video:</h3>
-                  {videoUrls.map((url, index) => (
-                    <div key={index} className="bg-gray-900/50 rounded-lg p-3">
-                      <video
-                        controls
-                        className="w-full rounded-lg"
-                        style={{ maxHeight: '400px' }}
-                      >
-                        <source src={url} type="video/mp4" />
-                        Your browser does not support the video tag.
-                      </video>
+                {titleDialogOpen && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="fixed inset-0 bg-black/40" aria-hidden="true" onClick={() => setTitleDialogOpen(false)} />
+                    <div className="relative bg-white rounded-lg p-6 w-full max-w-xs mx-auto flex flex-col items-center z-10">
+                      <div className="text-md font-semibold mb-2 text-black">Name your dream video</div>
+                      <input
+                        type="text"
+                        value={videoTitle}
+                        onChange={e => setVideoTitle(e.target.value)}
+                        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black bg-white"
+                        placeholder="Enter a title..."
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded"
+                          onClick={() => setTitleDialogOpen(false)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-1 rounded"
+                          onClick={() => setTitleDialogOpen(false)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-              
-              {/* Show final emoji summary */}
-              {emojis.length > 0 && (
-                <div className="mt-4 bg-gray-800/50 p-4 rounded-lg">
-                  <h3 className="text-white font-medium mb-2">🎵 Dream Emojis:</h3>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    {emojis.map((emoji, index) => (
-                      <span key={index} className="text-2xl" title={`Chunk ${index + 1}`}>
-                        {emoji}
-                      </span>
-                    ))}
                   </div>
-                </div>
+                )}
+              </>
+            )}
+            <div className="flex gap-4 justify-center">
+              {isProcessing || isGeneratingVideo ? (
+                <button
+                  onClick={resetRecording}
+                  className="bg-gray-600 text-white px-4 py-2 rounded-full font-medium transition"
+                >
+                  Cancel the process
+                </button>
+              ) : (
+                <button
+                  onClick={onBack}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-medium transition"
+                >
+                  See my beautiful work {" "}↗
+                </button>
               )}
             </div>
-          )}
+            {/* Show all details if debug menu is open (placeholder for now) */}
+            {/* TODO: Implement debug menu state and details rendering */}
+          </div>
+        </div>
+      )}
+      {debugMenuOpen && (
+        <div className="w-full flex justify-center mt-2">
+          <span className="text-white opacity-20 text-sm">Debug menu open</span>
         </div>
       )}
     </div>
   );
 }
 
-// Refactored MoonIconFilled with animated linearGradient
-function MoonIconFilled({ progress = 0, size = 192 }: { progress: number, size?: number }) {
-  // progress: 0 (empty) to 1 (full)
+// Refactored MoonIconFilled: solid color in dormant state, linear gradient during recording
+function MoonIconFilled({ progress = 0, size = 192, useGradient = false }: { progress: number, size?: number, useGradient?: boolean }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       {/* Outline */}
       <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" fill="none" stroke="#d1d5db" strokeWidth="2" />
-      {/* Fill with animated linearGradient */}
-      <defs>
-        <linearGradient id="moon-fill-gradient" x1="0" y1="24" x2="0" y2="0" gradientUnits="userSpaceOnUse">
-          <motion.stop
-            initial={{ offset: 1 }}
-            animate={{ offset: 1 - progress }}
-            transition={{ duration: 0, ease: 'linear' }}
-            stopColor="#F0C420"
-            stopOpacity="1"
-          />
-          <stop offset="1" stopColor="#F0C420" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" fill="url(#moon-fill-gradient)" />
+      {useGradient ? (
+        <>
+          <defs>
+            <linearGradient id="moon-fill-gradient" x1="0" y1="24" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+              <motion.stop
+                initial={{ offset: 1 }}
+                animate={{ offset: 1 - progress }}
+                transition={{ duration: 0, ease: 'linear' }}
+                stopColor="#F0C420"
+                stopOpacity="1"
+              />
+              <stop offset="1" stopColor="#F0C420" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" fill="url(#moon-fill-gradient)" />
+        </>
+      ) : (
+        <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" fill="#d1d5db" />
+      )}
     </svg>
   );
 }

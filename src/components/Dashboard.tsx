@@ -7,6 +7,7 @@ import DreamArchive from "@/components/DreamArchive";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import SettingsProfile from "@/components/SettingsProfile";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
 
 import { 
   PlusIcon, 
@@ -113,7 +114,7 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
           <img
             src="/favicon.ico"
             alt="App Logo"
-            className="w-8 h-8 md:w-10 md:h-10 object-contain filter invert"
+            className="w-8 h-8 md:w-10 md:h-10 object-contain"
             draggable="false"
           />
         </div>
@@ -131,7 +132,19 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
             </button>
           ))}
         </div>
-        {/* No bottom icon, all icons are grouped above */}
+        {/* GitHub icon at the bottom of the sidebar */}
+        <div className="mt-auto mb-2 flex justify-center w-full">
+          <a
+            href="https://github.com/chrstnlai/aihack"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1 rounded-xs flex items-center transition-colors hover:bg-black/20"
+            title="GitHub Repository"
+            style={{ lineHeight: 0 }}
+          >
+            <GitHubLogoIcon className="w-4 h-4 text-white opacity-60 hover:opacity-100" />
+          </a>
+        </div>
       </aside>
 
       {/* Main Content */}
@@ -172,13 +185,8 @@ export default function Dashboard({ appLogo = "✦", userName = "Christine" }: D
               </motion.h1>
             </AnimatePresence>
           </div>
-          <span
-            className="text-base md:text-lg font-light opacity-60 hover:opacity-80 cursor-copy transition-opacity select-none"
-            title="Copy share link"
-            onClick={() => navigator.clipboard.writeText(process.env.NEXT_PUBLIC_URL || window.location.origin)}
-          >
-            Share{"   "}↗
-          </span>
+          <div className="flex items-center gap-2">
+          </div>
         </header>
 
         {/* Main Content Area */}

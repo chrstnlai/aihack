@@ -55,26 +55,18 @@ export default function DreamDetails({ dream, onBack, onEditTitle, onDelete }: D
 
   return (
     <div className="min-h-screen p-6">
-      {/* Header with back button */}
-      <div className="mb-6">
-        <button
-          onClick={onBack}
-          className="bg-white text-black px-3 py-1.5 rounded-full text-sm font-medium shadow-sm hover:bg-gray-100 transition"
-        >
-          ⬅ Back to Archive
-        </button>
-      </div>
+      {/* No back button */}
 
       <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6">
-        <div className="w-full mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="w-full mx-auto flex flex-col lg:flex-row gap-8">
           {/* Left Panel - Dream Thumbnail */}
-          <div className="lg:col-span-2">
+          <div className="w-full lg:w-2/3 flex flex-col justify-center">
             <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden">
-              <div className="relative">
+              <div className="relative aspect-video w-full">
                 <img
                   src={dream.video_thumbnail || "/dreambackground1.png"}
                   alt="Dream visualization"
-                  className="w-full aspect-video object-cover"
+                  className="w-full h-full object-cover absolute inset-0"
                 />
                 <button
                   onClick={() => setShowVideoOverlay(true)}
@@ -89,12 +81,11 @@ export default function DreamDetails({ dream, onBack, onEditTitle, onDelete }: D
           </div>
 
           {/* Right Panel - Dream Metadata */}
-          <div className="space-y-6">
+          <div className="w-full lg:w-1/3 flex flex-col space-y-6">
             {/* AI Title Section */}
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Dream Title</h3>
               <div className="text-white font-medium">{dream.ai_title}</div>
-              
               {/* User Title Section */}
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Your Title</h4>
@@ -108,18 +99,20 @@ export default function DreamDetails({ dream, onBack, onEditTitle, onDelete }: D
                       placeholder="Enter your title..."
                     />
                     <div className="flex gap-2">
-                      <button
+                      <span
                         onClick={handleSaveTitle}
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                        className="underline text-green-500 hover:text-green-700 cursor-pointer text-sm mr-2"
+                        style={{border: 'none', background: 'none', padding: 0, margin: 0}}
                       >
-                        Save
-                      </button>
-                      <button
+                        Save ↗
+                      </span>
+                      <span
                         onClick={handleCancelEdit}
-                        className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm"
+                        className="underline text-gray-400 hover:text-gray-600 cursor-pointer text-sm"
+                        style={{border: 'none', background: 'none', padding: 0, margin: 0}}
                       >
-                        Cancel
-                      </button>
+                        Cancel ↗
+                      </span>
                     </div>
                   </div>
                 ) : (
@@ -148,30 +141,33 @@ export default function DreamDetails({ dream, onBack, onEditTitle, onDelete }: D
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Transcripts</h3>
               <div className="space-y-2">
-                <button
+                <span
                   onClick={() => copyToClipboard(dream.transcript_raw, "Raw transcript")}
-                  className="w-full bg-gray-900/50 border border-gray-600 hover:bg-gray-800 text-white px-3 py-2 rounded text-sm flex items-center"
+                  className="w-full underline text-blue-300 hover:text-blue-400 cursor-pointer text-sm flex items-center"
+                  style={{border: 'none', background: 'none', padding: 0, margin: 0}}
                 >
-                  📋 Copy Raw Transcript
-                </button>
-                <button
+                  Copy Raw Transcript ↗
+                </span>
+                <span
                   onClick={() => copyToClipboard(JSON.stringify(dream.transcript_json, null, 2), "JSON transcript")}
-                  className="w-full bg-gray-900/50 border border-gray-600 hover:bg-gray-800 text-white px-3 py-2 rounded text-sm flex items-center"
+                  className="w-full underline text-blue-300 hover:text-blue-400 cursor-pointer text-sm flex items-center"
+                  style={{border: 'none', background: 'none', padding: 0, margin: 0}}
                 >
-                  📋 Copy JSON Transcript
-                </button>
+                  Copy JSON Transcript ↗
+                </span>
               </div>
             </div>
 
             {/* Video Section */}
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Video</h3>
-              <button
+              <span
                 onClick={() => setShowVideoOverlay(true)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm flex items-center justify-center"
+                className="w-full underline text-blue-300 hover:text-blue-400 cursor-pointer text-sm flex items-center justify-center"
+                style={{border: 'none', background: 'none', padding: 0, margin: 0}}
               >
-                ▶️ Play Video
-              </button>
+                ▶️ Play Video ↗
+              </span>
             </div>
 
             {/* Emojis Section */}
@@ -184,12 +180,13 @@ export default function DreamDetails({ dream, onBack, onEditTitle, onDelete }: D
             {onDelete && (
               <div className="space-y-3">
                 <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Actions</h3>
-                <button
+                <span
                   onClick={onDelete}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm"
+                  className="w-full underline text-red-400 hover:text-red-600 cursor-pointer text-sm flex items-center"
+                  style={{border: 'none', background: 'none', padding: 0, margin: 0}}
                 >
-                  🗑️ Delete Dream
-                </button>
+                  🗑️ Delete Dream ↗
+                </span>
               </div>
             )}
           </div>
