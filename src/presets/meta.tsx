@@ -3,7 +3,7 @@ import Head from "next/head";
 const HeadComponent = () => {
   return <Head>
       <title>Dreamscape</title>
-      <meta name="description" content="" />
+      <meta name="description" content="Visualize your dreams." />
       <meta name="author" content="Dreamscape" />
       <link rel="canonical" href="https://aihack-mu.vercel.app" />
 
