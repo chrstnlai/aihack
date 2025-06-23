@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from '@radix-ui/react-toast';
 import Toasts from '../components/Toasts';
+import { HeadComponent } from "@/presets/meta";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,6 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <HeadComponent />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

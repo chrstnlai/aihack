@@ -28,3 +28,5 @@ const HeadComponent = () => {
       <link rel="apple-touch-icon" href="/dreamscape.png" />
   </Head>
 }
+
+export { HeadComponent };
